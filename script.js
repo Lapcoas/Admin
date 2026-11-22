@@ -1,10 +1,10 @@
-/* =====================================================================
+Project URL и anon key./* =====================================================================
    ПОДКЛЮЧЕНИЕ SUPABASE — впиши 2 значения (одни и те же в основном сайте и в админке)
    Supabase → Project Settings → API:  url = Project URL,  key = anon public key
    Никогда не вставляй сюда service_role key!
    ===================================================================== */
 window.RV_CONFIG={url:'https://YOUR-PROJECT.supabase.co',key:'YOUR-ANON-PUBLIC-KEY'};
-Project URL и anon key.
+
 /* RaevYoU admin panel — vanilla JS + Supabase */
 (()=>{
 const $=s=>document.querySelector(s),app=$('#app');
