@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RaevYoU · Admin</title>
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#000"><meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<div id="app"><div class="boot">RaevYoU</div></div>
+<div id="toasts" aria-live="polite"></div>
+<script src="script.js?v=raevyou-admin-code-4"></script>
+<script>
+(function(){
+ const root=document.documentElement;
+ const app=()=>document.querySelector('.app');
+ function syncViewport(){const vv=window.visualViewport;const h=vv&&vv.height?vv.height:window.innerHeight;root.style.setProperty('--app-height',Math.max(280,Math.round(h))+'px')}
+ function focusState(on){const a=app();if(a)a.classList.toggle('keyboard-open',!!on);setTimeout(syncViewport,on?80:180)}
+ syncViewport();window.addEventListener('resize',syncViewport,{passive:true});window.addEventListener('orientationchange',()=>setTimeout(syncViewport,250),{passive:true});
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',syncViewport,{passive:true});window.visualViewport.addEventListener('scroll',syncViewport,{passive:true})}
+ document.addEventListener('focusin',e=>{if(e.target.matches('textarea,input,select'))focusState(true)});
+ document.addEventListener('focusout',e=>{if(e.target.matches('textarea,input,select'))setTimeout(()=>{const a=document.activeElement;focusState(!!(a&&a.matches('textarea,input,select')))},80)});
+ document.addEventListener('click',e=>{if(e.target.closest('.back'))focusState(false)},true);
+})();
+</script>
+</body></html>
