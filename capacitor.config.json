@@ -1,0 +1,6 @@
+{
+  "appId": "com.raevyou.admin",
+  "appName": "RaevYoU Admin",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
