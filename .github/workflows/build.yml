@@ -74,11 +74,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y librsvg2-bin
           mkdir -p android/app/src/main/res/mipmap-mdpi android/app/src/main/res/mipmap-hdpi android/app/src/main/res/mipmap-xhdpi android/app/src/main/res/mipmap-xxhdpi android/app/src/main/res/mipmap-xxxhdpi android/app/src/main/res/mipmap-anydpi-v26 android/app/src/main/res/drawable
+          # Remove Capacitor's default adaptive foreground XML (it overrides the custom PNG and shows the Android robot).
+          rm -rf android/app/src/main/res/drawable-anydpi-v24
           rsvg-convert -w 48 -h 48 assets/app-icon.svg > android/app/src/main/res/mipmap-mdpi/ic_launcher.png
           rsvg-convert -w 72 -h 72 assets/app-icon.svg > android/app/src/main/res/mipmap-hdpi/ic_launcher.png
           rsvg-convert -w 96 -h 96 assets/app-icon.svg > android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
           rsvg-convert -w 144 -h 144 assets/app-icon.svg > android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
           rsvg-convert -w 192 -h 192 assets/app-icon.svg > android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          cp android/app/src/main/res/mipmap-mdpi/ic_launcher.png android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+          cp android/app/src/main/res/mipmap-hdpi/ic_launcher.png android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+          cp android/app/src/main/res/mipmap-xhdpi/ic_launcher.png android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+          cp android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+          cp android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
           rsvg-convert -w 432 -h 432 assets/app-icon-foreground.svg > android/app/src/main/res/drawable/ic_launcher_foreground.png
           cat > android/app/src/main/res/values/ic_launcher_background.xml <<'XML'
           <resources><color name="ic_launcher_background">#001D0C</color></resources>
