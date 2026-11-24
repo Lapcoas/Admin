@@ -10,6 +10,39 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Prepare app files
+        shell: bash
+        run: |
+          cat > package.json <<'JSON'
+          {
+            "name": "raevyou-admin",
+            "version": "1.0.0",
+            "description": "RaevYoU Admin",
+            "author": "RaevYoU",
+            "main": "main.js",
+            "devDependencies": { "electron": "^31.0.0", "electron-builder": "^24.13.3" },
+            "build": {
+              "appId": "com.raevyou.admin",
+              "productName": "RaevYoU Admin",
+              "files": ["main.js", "index.html", "script.js", "style.css", "package.json"],
+              "directories": { "output": "dist" },
+              "win": { "target": ["nsis", "portable"] },
+              "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+            }
+          }
+          JSON
+          cat > main.js <<'JS'
+          const { app, BrowserWindow, shell, Menu } = require('electron');
+          const path = require('path');
+          function createWindow() {
+            const win = new BrowserWindow({ width: 1200, height: 800, minWidth: 380, minHeight: 560, backgroundColor: '#000000', title: 'RaevYoU Admin' });
+            Menu.setApplicationMenu(null);
+            win.loadFile(path.join(__dirname, 'index.html'));
+            win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });
+          }
+          app.whenReady().then(createWindow);
+          app.on('window-all-closed', () => app.quit());
+          JS
       - run: npm install
       - run: npx electron-builder --win --publish never
       - uses: actions/upload-artifact@v4
@@ -27,7 +60,26 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - run: mkdir www && cp index.html www/index.html
+      - name: Prepare app files
+        run: |
+          mkdir -p www
+          for f in index.html script.js style.css; do [ -f "$f" ] && cp "$f" www/; done
+          cat > package.json <<'JSON'
+          {
+            "name": "raevyou-admin",
+            "version": "1.0.0",
+            "private": true,
+            "dependencies": { "@capacitor/android": "^6.1.2", "@capacitor/cli": "^6.1.2", "@capacitor/core": "^6.1.2" }
+          }
+          JSON
+          cat > capacitor.config.json <<'JSON'
+          {
+            "appId": "com.raevyou.admin",
+            "appName": "RaevYoU Admin",
+            "webDir": "www",
+            "server": { "androidScheme": "https" }
+          }
+          JSON
       - run: npm install
       - run: npx cap add android
       - run: npx cap sync android
