@@ -17,7 +17,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - name: Install dependencies
         run: npm install
       - name: Build Windows packages
@@ -39,25 +38,42 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-      - name: Prepare web assets
+      - name: Prepare Android web assets
         run: |
           mkdir -p www
           cp index.html style.css script.js www/
-      - name: Install dependencies and prepare Android
+          cat > package.json <<'JSON'
+          {
+            "name": "raevyou-admin-android",
+            "version": "2.2.0",
+            "private": true,
+            "dependencies": {
+              "@capacitor/android": "6.1.2",
+              "@capacitor/cli": "6.1.2",
+              "@capacitor/core": "6.1.2"
+            }
+          }
+          JSON
+          cat > capacitor.config.json <<'JSON'
+          {
+            "appId": "com.raevyou.admin",
+            "appName": "RaevYoU Admin",
+            "webDir": "www",
+            "server": { "androidScheme": "https" }
+          }
+          JSON
+      - name: Install and build APK
         run: |
           npm install
           npx cap add android
           npx cap sync android
-      - name: Build APK
-        run: |
-          chmod +x gradlew
+          chmod +x android/gradlew
+          cd android
           ./gradlew assembleDebug
-        working-directory: android
       - uses: actions/upload-artifact@v4
         with:
           name: RaevYoU-Admin-Android
