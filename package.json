@@ -1,0 +1,37 @@
+{
+  "name": "raevyou-admin",
+  "version": "2.2.0",
+  "description": "RaevYoU Admin Console",
+  "author": "RaevYoU",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis portable --publish never"
+  },
+  "devDependencies": {
+    "@capacitor/android": "6.1.2",
+    "@capacitor/cli": "6.1.2",
+    "@capacitor/core": "6.1.2",
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.raevyou.admin",
+    "productName": "RaevYoU Admin",
+    "files": [
+      "main.js",
+      "index.html",
+      "script.js",
+      "style.css",
+      "package.json"
+    ],
+    "directories": { "output": "dist" },
+    "win": { "target": ["nsis", "portable"] },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}
