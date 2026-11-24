@@ -76,6 +76,13 @@ jobs:
           mkdir -p android/app/src/main/res/mipmap-mdpi android/app/src/main/res/mipmap-hdpi android/app/src/main/res/mipmap-xhdpi android/app/src/main/res/mipmap-xxhdpi android/app/src/main/res/mipmap-xxxhdpi android/app/src/main/res/mipmap-anydpi-v26 android/app/src/main/res/drawable
           # Remove Capacitor's default adaptive foreground XML (it overrides the custom PNG and shows the Android robot).
           rm -rf android/app/src/main/res/drawable-anydpi-v24
+          mkdir -p android/app/src/main/res/drawable-anydpi-v24
+          # Override Capacitor's Android 7+ default robot foreground with the custom R bitmap.
+          cat > android/app/src/main/res/drawable-anydpi-v24/ic_launcher_foreground.xml <<'XML'
+          <bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+            android:src="@drawable/ic_launcher_foreground"
+            android:gravity="center" />
+          XML
           rsvg-convert -w 48 -h 48 assets/app-icon.svg > android/app/src/main/res/mipmap-mdpi/ic_launcher.png
           rsvg-convert -w 72 -h 72 assets/app-icon.svg > android/app/src/main/res/mipmap-hdpi/ic_launcher.png
           rsvg-convert -w 96 -h 96 assets/app-icon.svg > android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
