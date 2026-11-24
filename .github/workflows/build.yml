@@ -1,91 +1,66 @@
-name: Build apps
+name: Build RaevYoU Admin
+
 on:
   push:
+    branches: [main, "raevyou/**"]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   windows:
+    name: Windows installer and portable app
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Prepare app files
-        shell: bash
-        run: |
-          cat > package.json <<'JSON'
-          {
-            "name": "raevyou-admin",
-            "version": "1.0.0",
-            "description": "RaevYoU Admin",
-            "author": "RaevYoU",
-            "main": "main.js",
-            "devDependencies": { "electron": "^31.0.0", "electron-builder": "^24.13.3" },
-            "build": {
-              "appId": "com.raevyou.admin",
-              "productName": "RaevYoU Admin",
-              "files": ["main.js", "index.html", "script.js", "style.css", "package.json"],
-              "directories": { "output": "dist" },
-              "win": { "target": ["nsis", "portable"] },
-              "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
-            }
-          }
-          JSON
-          cat > main.js <<'JS'
-          const { app, BrowserWindow, shell, Menu } = require('electron');
-          const path = require('path');
-          function createWindow() {
-            const win = new BrowserWindow({ width: 1200, height: 800, minWidth: 380, minHeight: 560, backgroundColor: '#000000', title: 'RaevYoU Admin' });
-            Menu.setApplicationMenu(null);
-            win.loadFile(path.join(__dirname, 'index.html'));
-            win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });
-          }
-          app.whenReady().then(createWindow);
-          app.on('window-all-closed', () => app.quit());
-          JS
-      - run: npm install
-      - run: npx electron-builder --win --publish never
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Build Windows packages
+        run: npm run dist:win
       - uses: actions/upload-artifact@v4
         with:
           name: RaevYoU-Admin-Windows
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.yml
+          if-no-files-found: error
+          retention-days: 14
+
   android:
+    name: Android APK
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
-      - name: Prepare app files
+          java-version: "17"
+      - name: Prepare web assets
         run: |
           mkdir -p www
-          for f in index.html script.js style.css; do [ -f "$f" ] && cp "$f" www/; done
-          cat > package.json <<'JSON'
-          {
-            "name": "raevyou-admin",
-            "version": "1.0.0",
-            "private": true,
-            "dependencies": { "@capacitor/android": "^6.1.2", "@capacitor/cli": "^6.1.2", "@capacitor/core": "^6.1.2" }
-          }
-          JSON
-          cat > capacitor.config.json <<'JSON'
-          {
-            "appId": "com.raevyou.admin",
-            "appName": "RaevYoU Admin",
-            "webDir": "www",
-            "server": { "androidScheme": "https" }
-          }
-          JSON
-      - run: npm install
-      - run: npx cap add android
-      - run: npx cap sync android
-      - run: chmod +x gradlew && ./gradlew assembleDebug
+          cp index.html style.css script.js www/
+      - name: Install dependencies and prepare Android
+        run: |
+          npm install
+          npx cap add android
+          npx cap sync android
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
         working-directory: android
       - uses: actions/upload-artifact@v4
         with:
           name: RaevYoU-Admin-Android
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
