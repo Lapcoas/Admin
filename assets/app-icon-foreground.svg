@@ -1,1 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><image width="512" height="512" href="data:image/png;base64,REPLACE_B64"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="432" viewBox="0 0 432 432">
+<defs><linearGradient id="r" x1="0" y1="0" x2="1" y2=".2"><stop stop-color="#14e85a"/><stop offset=".55" stop-color="#39f83c"/><stop offset="1" stop-color="#c7ff42"/></linearGradient><filter id="g" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<path d="M92 92h120c55 0 85 28 85 74 0 35-18 59-50 68l58 86h-73l-49-75h-17v75H92V92zm74 60v38h42c16 0 25-6 25-19s-9-19-25-19h-42z" fill="url(#r)" filter="url(#g)"/>
+</svg>
