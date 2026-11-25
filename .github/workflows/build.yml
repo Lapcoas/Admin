@@ -22,7 +22,7 @@ jobs:
       - name: Generate Windows application icon
         run: |
           npm install --no-save sharp to-ico
-          node -e "const fs=require('fs');const sharp=require('sharp');const toIco=require('to-ico');(async()=>{const svg=fs.readFileSync('assets/app-icon.svg');const pngs=await Promise.all([16,24,32,48,64,128,256].map(size=>sharp(svg).resize(size,size).png().toBuffer()));fs.writeFileSync('icon.ico',await toIco(pngs));})().catch(e=>{console.error(e);process.exit(1)})()"
+          node -e "const fs=require('fs');const sharp=require('sharp');const toIco=require('to-ico');(async function(){const svg=fs.readFileSync('assets/app-icon.svg');const pngs=await Promise.all([16,24,32,48,64,128,256].map(size=>sharp(svg).resize(size,size).png().toBuffer()));fs.writeFileSync('icon.ico',await toIco(pngs));})().catch(e=>{console.error(e);process.exit(1)});"
       - name: Build Windows packages
         run: npm run dist:win
       - uses: actions/upload-artifact@v4
