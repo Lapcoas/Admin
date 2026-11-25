@@ -22,7 +22,7 @@ jobs:
       - name: Generate Windows application icon
         run: |
           npm install --no-save sharp to-ico
-          node -e "const fs=require('fs');const sharp=require('sharp');const toIco=require('to-ico');(async function(){const svg=fs.readFileSync('assets/app-icon.svg');const pngs=await Promise.all([16,24,32,48,64,128,256].map(size=>sharp(svg).resize(size,size).png().toBuffer()));fs.writeFileSync('icon.ico',await toIco(pngs));})().catch(e=>{console.error(e);process.exit(1)});"
+          node -e "const fs=require('fs');const sharp=require('sharp');const toIco=require('to-ico');(async function(){const png=fs.readFileSync('assets/app-icon.png');const pngs=await Promise.all([16,24,32,48,64,128,256].map(size=>sharp(png).resize(size,size).png().toBuffer()));fs.writeFileSync('icon.ico',await toIco(pngs));})().catch(e=>{console.error(e);process.exit(1)});"
       - name: Build Windows packages
         run: npm run dist:win
       - uses: actions/upload-artifact@v4
@@ -76,28 +76,26 @@ jobs:
           npx cap add android
           npx cap sync android
           sudo apt-get update
-          sudo apt-get install -y librsvg2-bin
+          sudo apt-get install -y imagemagick
           mkdir -p android/app/src/main/res/mipmap-mdpi android/app/src/main/res/mipmap-hdpi android/app/src/main/res/mipmap-xhdpi android/app/src/main/res/mipmap-xxhdpi android/app/src/main/res/mipmap-xxxhdpi android/app/src/main/res/mipmap-anydpi-v26 android/app/src/main/res/drawable
-          # Remove Capacitor's default adaptive foreground XML (it overrides the custom PNG and shows the Android robot).
           rm -rf android/app/src/main/res/drawable-anydpi-v24
           mkdir -p android/app/src/main/res/drawable-anydpi-v24
-          # Override Capacitor's Android 7+ default robot foreground with the custom R bitmap.
           cat > android/app/src/main/res/drawable-anydpi-v24/ic_launcher_foreground.xml <<'XML'
           <bitmap xmlns:android="http://schemas.android.com/apk/res/android"
             android:src="@drawable/ic_launcher_foreground_custom"
             android:gravity="center" />
           XML
-          rsvg-convert -w 48 -h 48 assets/app-icon.svg > android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-          rsvg-convert -w 72 -h 72 assets/app-icon.svg > android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-          rsvg-convert -w 96 -h 96 assets/app-icon.svg > android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          rsvg-convert -w 144 -h 144 assets/app-icon.svg > android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          rsvg-convert -w 192 -h 192 assets/app-icon.svg > android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          convert assets/app-icon.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          convert assets/app-icon.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          convert assets/app-icon.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          convert assets/app-icon.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          convert assets/app-icon.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
           cp android/app/src/main/res/mipmap-mdpi/ic_launcher.png android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
           cp android/app/src/main/res/mipmap-hdpi/ic_launcher.png android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
           cp android/app/src/main/res/mipmap-xhdpi/ic_launcher.png android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
           cp android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
           cp android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
-          rsvg-convert -w 432 -h 432 assets/app-icon-foreground.svg > android/app/src/main/res/drawable/ic_launcher_foreground.png
+          convert assets/app-icon.png -resize 432x432 android/app/src/main/res/drawable/ic_launcher_foreground.png
           cp android/app/src/main/res/drawable/ic_launcher_foreground.png android/app/src/main/res/drawable/ic_launcher_foreground_custom.png
           cat > android/app/src/main/res/values/ic_launcher_background.xml <<'XML'
           <resources><color name="ic_launcher_background">#001D0C</color></resources>
