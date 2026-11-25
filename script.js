@@ -47,46 +47,44 @@ function updTitle(){const n=unreadTotal();document.title=(n?'('+n+') ':'')+'Raev
 function authScreen(mode,note){
  const q=new URLSearchParams(location.search),inv=q.get('invite');
  mode=mode||(inv?'invite':'login');
- const email=h('input',{class:'inp',type:'text',placeholder:mode==='login'?'Логин RaevYoU':'Почта',autocomplete:mode==='login'?'username':'email',inputmode:mode==='login'?'text':'email',required:true}),
-  pw=h('input',{class:'inp',type:'password',placeholder:'Пароль (минимум 8 символов)',autocomplete:mode==='login'?'current-password':'new-password',required:true}),
+ const username=h('input',{class:'inp',placeholder:'Логин',autocomplete:'username',maxlength:24,required:true}),
+  pw=h('input',{class:'inp',type:'password',placeholder:'Пароль',autocomplete:'current-password',required:true}),
   name=h('input',{class:'inp',placeholder:'Твоё имя (его увидят в ответах)',maxlength:40,autocomplete:'nickname'}),
   code=h('input',{class:'inp',placeholder:mode==='owner'?'Секретный код первого запуска':'Код приглашения',autocomplete:'off',spellcheck:'false'});
  if(inv)code.value=inv;
- const msg=h('div'),go=h('button',{class:'btn pri',type:'submit'},mode==='login'?'Войти':mode==='owner'?'Создать владельца':'Зарегистрироваться');
- const fields=mode==='login'?[email,pw]:[name,email,pw,code];
- const form=h('form',{class:'form',onsubmit:async e=>{e.preventDefault();msg.replaceChildren();
-   if(mode!=='login'&&pw.value.length<8)return msg.append(h('div',{class:'err',text:'Пароль должен быть не короче 8 символов'}));
-   if(mode!=='login'&&!name.value.trim())return msg.append(h('div',{class:'err',text:'Укажи имя'}));
-   go.disabled=true;
+ const msg=h('div'),go=h('button',{class:'btn pri',type:'submit'},mode==='login'?'Войти':mode==='owner'?'Создать владельца':'Принять приглашение');
+ const fields=mode==='login'?[username,pw]:[name,code];
+ const form=h('form',{class:'form',onsubmit:async e=>{e.preventDefault();msg.replaceChildren();go.disabled=true;
    try{
     if(mode==='login'){
-     const login=email.value.trim();
-     if(login.toLowerCase()==='raevyou'){
-      const response=await fetch(C.url+'/functions/v1/owner-login',{method:'POST',headers:{'Content-Type':'application/json','apikey':C.key},body:JSON.stringify({login,password:pw.value})});
-      const result=await response.json().catch(()=>({}));
-      if(!response.ok||!result.session)throw new Error(result.error||'Неверный логин или пароль');
-      const{error}=await sb.auth.setSession(result.session);if(error)throw error;
-     }else{const{error}=await sb.auth.signInWithPassword({email:login,password:pw.value});if(error)throw error}
+     const response=await fetch(C.url+'/functions/v1/owner-login',{method:'POST',headers:{'Content-Type':'application/json','apikey':C.key},body:JSON.stringify({username:username.value.trim(),password:pw.value})});
+     const result=await response.json().catch(()=>({}));
+     if(!response.ok||!result.session)throw new Error(result.error||'Неверный логин или пароль');
+     const{error}=await sb.auth.setSession(result.session);if(error)throw error;
+    }else{
+     if(!name.value.trim())throw new Error('Укажи имя');
+     const{data:sessionData,error:sessionError}=await sb.auth.signInAnonymously();
+     if(sessionError)throw sessionError;
+     const{error}=await sb.rpc(mode==='owner'?'claim_owner':'redeem_invite',{p_code:code.value.trim(),p_name:name.value.trim()});
+     if(error)throw error;
     }
-    else{const{data,error}=await sb.auth.signUp({email:email.value.trim(),password:pw.value});if(error)throw error;
-     localStorage.setItem('rv_pending',JSON.stringify({kind:mode,code:code.value.trim(),name:name.value.trim()}));
-     if(!data.session){msg.append(h('div',{class:'ok',text:'Почти готово! Подтверди почту по письму от Supabase, потом войди — права выдадутся автоматически.'}));go.disabled=false;return}}
     try{history.replaceState(null,'',location.pathname)}catch(_){}await boot()
    }catch(err){msg.replaceChildren(h('div',{class:'err',text:explain(err)}));go.disabled=false}
  }},...fields,msg,go);
  const tab=(m,t)=>h('button',{class:'chip'+(mode===m?' on':''),type:'button',onclick:()=>authScreen(m)},t);
  app.replaceChildren(h('div',{class:'auth'},h('div',{class:'card'},h('div',{class:'logo'},'RaevYoU',h('small',{text:'admin'})),
-  h('h1',{text:mode==='login'?'Вход':mode==='owner'?'Первый запуск':'Регистрация по приглашению'}),
-  h('p',{text:mode==='login'?'Введи логин RaevYoU и пароль владельца.':mode==='owner'?'Создай аккаунт владельца. Нужен секретный код, который ты придумал при запуске SQL (кнопка «SQL для настройки» ниже).':'Введи код приглашения от владельца сайта.'}),
+  h('h1',{text:mode==='login'?'Вход':mode==='owner'?'Первый запуск':'Вход по приглашению'}),
+  h('p',{text:mode==='login'?'Введи свой логин и пароль. Почта не нужна.':mode==='owner'?'Укажи имя и секретный код первого запуска.':'Укажи имя и код приглашения от владельца.'}),
   note?h('div',{class:'err',text:note,style:'margin-bottom:12px'}):null,
-  h('div',{class:'tabs2'},tab('login','Вход'),tab('invite','Я по приглашению'),tab('owner','Первый запуск (владелец)')),form,h('p',{style:'margin:16px 0 0'},h('button',{class:'link',type:'button',onclick:sqlModal},'SQL для настройки Supabase')))))}
+  h('div',{class:'tabs2'},tab('login','Вход'),tab('invite','По приглашению'),tab('owner','Первый запуск')),form,
+  h('p',{class:'mut',style:'margin:12px 0 0',text:'Для входа по приглашению почта и регистрация не требуются.'}))))}
 
 function noAccess(note,kind){
  kind=kind||'invite';
  const code=h('input',{class:'inp',placeholder:kind==='owner'?'Секретный код первого запуска':'Код приглашения',autocomplete:'off',spellcheck:'false'}),name=h('input',{class:'inp',placeholder:'Твоё имя',maxlength:40}),msg=h('div');
  const tab=(k,t)=>h('button',{class:'chip'+(kind===k?' on':''),type:'button',onclick:()=>noAccess(null,k)},t);
  app.replaceChildren(h('div',{class:'auth'},h('div',{class:'card'},h('div',{class:'logo'},'RaevYoU',h('small',{text:'admin'})),
-  h('h1',{text:'Нет доступа'}),h('p',{text:'Аккаунт '+(st.user&&st.user.email||'')+' пока не админ. Введи код, чтобы получить доступ.'}),
+  h('h1',{text:'Нет доступа'}),h('p',{text:'Этот аккаунт пока не администратор. Введи код приглашения, чтобы получить доступ.'}),
   note?h('div',{class:'err',text:note,style:'margin-bottom:12px'}):null,
   h('div',{class:'tabs2'},tab('invite','Код приглашения'),tab('owner','Я владелец (первый запуск)')),
   h('form',{class:'form',onsubmit:async e=>{e.preventDefault();msg.replaceChildren();
@@ -164,7 +162,7 @@ function renderOverview(){
 function toggleSound(){st.sound=!st.sound;localStorage.setItem('rv_sound',st.sound?'1':'0');$('#snd').classList.toggle('on',st.sound);
  if(st.sound&&window.Notification&&Notification.permission==='default')Notification.requestPermission();toast(st.sound?'Звук включён':'Звук выключен')}
 function profile(){const nm=h('input',{class:'inp',value:st.me.display_name,maxlength:40});
- const m=modal('Профиль',h('p',{class:'mut',style:'margin:0 0 12px',text:st.me.email+' · '+(st.me.role==='owner'?'владелец':'админ')}),nm,
+ const m=modal('Профиль',h('p',{class:'mut',style:'margin:0 0 12px',text:st.me.role==='owner'?'владелец':'админ'}),nm,
   h('div',{class:'acts'},h('button',{class:'btn pri',onclick:async()=>{if(!nm.value.trim())return;const{error}=await sb.rpc('set_display_name',{p_name:nm.value.trim()});if(error)return toast(explain(error));st.me.display_name=nm.value.trim().slice(0,40);m.remove();renderApp();toast('Сохранено')}},'Сохранить'),
    h('button',{class:'btn',onclick:()=>{m.remove();signOut()}},ic('out'),'Выйти')))}
 
@@ -247,7 +245,7 @@ function renderAdmins(){const isOwner=st.me.role==='owner',main=$('#main');
  main.replaceChildren(h('div',{class:'page'},h('div',{class:'ph'},h('h2',{text:'Админы'}),isOwner?h('button',{class:'btn pri sm',onclick:async()=>{const{data,error}=await sb.rpc('create_invite');if(error)return toast(explain(error));
    const i={code:data,created_at:new Date().toISOString(),expires_at:new Date(Date.now()+6048e5).toISOString(),used_by:null};st.invites.unshift(i);
    modal('Приглашение создано',h('p',{class:'mut',style:'margin:0 0 10px',text:'Отправь человеку ссылку или код. Действует 7 дней, один раз. Человек регистрируется на этой странице и сразу становится админом.'}),h('div',{class:'code',text:invLink(data)}),h('div',{class:'acts'},h('button',{class:'btn sm pri',onclick:()=>copy(invLink(data))},ic('copy'),'Копировать ссылку'),h('button',{class:'btn sm',onclick:()=>copy(data)},'Копировать код')));renderAdmins()}},'+ Пригласить админа'):null),
-  h('div',{},st.admins.map(a=>h('div',{class:'box'},h('div',{class:'row'},h('div',{class:'av',text:initials(a.display_name)}),h('div',{class:'grow'},h('b',{text:a.display_name+(a.user_id===st.user.id?' (ты)':'')}),h('div',{class:'mut',text:a.email})),h('span',{class:'pill'+(a.role==='owner'?' w':''),text:a.role==='owner'?'владелец':'админ'}),
+  h('div',{},st.admins.map(a=>h('div',{class:'box'},h('div',{class:'row'},h('div',{class:'av',text:initials(a.display_name)}),h('div',{class:'grow'},h('b',{text:a.display_name+(a.user_id===st.user.id?' (ты)':'')}),h('div',{class:'mut',text:a.username?'@'+a.username:'Без логина — вход по сохранённой сессии'})),h('span',{class:'pill'+(a.role==='owner'?' w':''),text:a.role==='owner'?'владелец':'админ'}),
     isOwner&&a.role!=='owner'?h('button',{class:'btn sm dng',onclick:async()=>{if(!confirm('Убрать '+a.display_name+' из админов?'))return;const{error}=await sb.rpc('remove_admin',{p_user:a.user_id});if(error)return toast(explain(error));st.admins=st.admins.filter(x=>x.user_id!==a.user_id);renderAdmins()}},'Убрать'):null)))),
   isOwner?h('div',{},h('h3',{style:'margin:26px 0 10px',text:'Приглашения'}),st.invites.length?st.invites.map(i=>h('div',{class:'box'},h('div',{class:'row'},h('span',{class:'code grow',text:i.code}),h('span',{class:'pill'+(status(i)==='активен'?' w':''),text:status(i)}),
     status(i)==='активен'?h('button',{class:'btn sm',onclick:()=>copy(invLink(i.code))},'Ссылка'):null,
