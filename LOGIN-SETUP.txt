@@ -8,11 +8,11 @@ username@raevyou-admin.example.com
 Это служебный адрес, а не почтовый ящик.
 
 ВАЖНО: перед первой регистрацией один раз отключи подтверждение email в Supabase:
-1. Открой https://supabase.com/dashboard/project/qsxlvufosgsdabsykxjx/auth/providers
+1. Открой https://supabase.com/dashboard/project/vlkwavhzujcrnrwoejyc/auth/providers
 2. Authentication → Sign In / Providers → Email.
 3. Выключи Confirm email (Email confirmations).
 4. Сохрани настройки.
 
 Не регистрируйся до выключения Confirm email: если попытка регистрации прошла с подтверждением включённым, Supabase создаст неподтверждённую учётную запись. В таком случае выбери другой логин либо удали неподтверждённую запись в Authentication → Users.
 
-SQL-изменения для username уже применены к проекту RaevYou review 2. Файл username-login-migration.sql оставлен в архиве как резервная миграция; повторно запускать его не требуется.
+Текущая рабочая база: RaevYou review (без цифры 2). Админка и чат должны использовать только её.
