@@ -1,12 +1,11 @@
-RaevYoU Admin
+RaevYoU Admin — версия 2.2.0
 
-Desktop:
-  npm install
-  npm start
-  npm run dist:win
+Приложение собирается GitHub Actions для Windows (установщик и portable EXE) и Android (APK).
 
-Android:
-  GitHub Actions workflow builds a debug APK from index.html, style.css and script.js.
+Исходники панели: index.html, style.css, script.js.
+Иконка приложения: assets/app-icon.svg и assets/app-icon-foreground.svg — тёмно-зелёный фон с неоновой буквой R.
 
-Supabase project: qsxlvufosgsdabsykxjx.
-The app uses the public publishable key configured in script.js. Never put a service_role key in client code.
+Supabase project ref: vlkwavhzujcrnrwoejyc (RaevYou review, без цифры).
+В клиентском коде используется только публичный publishable key. Секретный service_role key не добавлять.
+
+Сборки находятся во вкладке Actions → Build RaevYoU Admin → Artifacts.
