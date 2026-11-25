@@ -222,12 +222,12 @@ function renderReviews(){const main=$('#main'),list=st.rev.slice().sort((a,b)=>b
  main.replaceChildren(h('div',{class:'page'},h('div',{class:'ph'},h('h2',{text:'Отзывы'})),
   h('div',{class:'console-note'},h('span',{class:'console-dot'}),'PUBLIC FEED ',h('b',{text:'//'}),' отзывы публикуются автоматически; здесь доступны только ответы и удаление'),
   list.length?list.map(revBox):h('div',{class:'empty',text:'Новых отзывов пока нет.'})))}
-function revBox(r){const isOwner=st.me.role==='owner';
+function revBox(r){const canDelete=!!st.me;
  const box=h('div',{class:'box'},h('div',{class:'rh'},h('b',{text:r.author_name}),h('span',{class:'st',text:stars(r.rating)}),h('small',{text:dm(r.created_at)+' '+hm(r.created_at)})),h('p',{class:'rb',text:r.body}));
  if(r.reply)box.append(h('div',{class:'rrep'},h('small',{text:'Ответ · '+(r.reply_admin_name||'')}),h('p',{text:r.reply})));
  const acts=h('div',{class:'acts'});
  acts.append(h('button',{class:'btn sm pri',onclick:()=>replyBox(r,box)},r.reply?'Изменить ответ':'Ответить'));
- if(isOwner)acts.append(h('button',{class:'btn sm dng',onclick:async()=>{if(!confirm('Удалить отзыв навсегда?'))return;const{error}=await sb.from('admin_reviews').delete().eq('id',r.id);if(error)return toast(explain(error));st.rev=st.rev.filter(x=>x.id!==r.id);updBadges();renderReviews()}},'Удалить'));
+ if(canDelete)acts.append(h('button',{class:'btn sm dng',onclick:async()=>{if(!confirm('Удалить отзыв навсегда?'))return;const{error}=await sb.from('admin_reviews').delete().eq('id',r.id);if(error)return toast(explain(error));st.rev=st.rev.filter(x=>x.id!==r.id);updBadges();renderReviews()}},'Удалить'));
  box.append(acts);return box}
 function replyBox(r,box){if(box.querySelector('.rform'))return;const ta=h('textarea',{class:'inp',maxlength:1500,placeholder:'Ответ на отзыв (виден всем на сайте)'});ta.value=r.reply||'';
  const f=h('div',{class:'rform',style:'margin-top:12px'},ta,h('div',{class:'acts'},h('button',{class:'btn sm pri',onclick:async()=>{const v=ta.value.trim();if(!v)return;const{data,error}=await sb.from('admin_reviews').update({reply:v}).eq('id',r.id).select().single();if(error)return toast(explain(error));Object.assign(r,data||{reply:v});renderReviews();toast('Ответ сохранён')}},'Отправить ответ'),h('button',{class:'btn sm',onclick:()=>f.remove()},'Отмена')));
