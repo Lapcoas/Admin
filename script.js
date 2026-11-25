@@ -109,10 +109,12 @@ async function boot(){
  await loadAll();renderApp();subscribe()}
 async function loadAll(){
  const[c,r,a]=await Promise.all([sb.from('conversations').select('*').order('last_message_at',{ascending:false}).limit(300),sb.from('admin_reviews').select('*').order('created_at',{ascending:false}).limit(500),sb.from('admins').select('*').order('created_at',{ascending:true})]);
+ const failed=[c,r,a].find(x=>x.error);
+ if(failed)throw failed.error;
  st.convs=c.data||[];st.rev=r.data||[];st.admins=a.data||[];
  const pendingIds=st.rev.filter(x=>x.status==='pending').map(x=>x.id);
  if(pendingIds.length){const{error}=await sb.from('admin_reviews').update({status:'published'}).in('id',pendingIds);if(!error)st.rev.forEach(x=>{if(pendingIds.includes(x.id))x.status='published'});else console.warn('Auto-publish pending reviews:',error.message)}
- if(st.me.role==='owner'){const i=await sb.from('invites').select('*').order('created_at',{ascending:false}).limit(50);st.invites=i.data||[]}}
+ if(st.me.role==='owner'){const i=await sb.from('invites').select('*').order('created_at',{ascending:false}).limit(50);if(i.error)throw i.error;st.invites=i.data||[]}}
 function subscribe(){if(st.rt)sb.removeChannel(st.rt);
  st.rt=sb.channel('admin-rt')
   .on('postgres_changes',{event:'*',schema:'public',table:'conversations'},onConv)
@@ -227,7 +229,7 @@ function revBox(r){const canDelete=!!st.me;
  if(r.reply)box.append(h('div',{class:'rrep'},h('small',{text:'Ответ · '+(r.reply_admin_name||'')}),h('p',{text:r.reply})));
  const acts=h('div',{class:'acts'});
  acts.append(h('button',{class:'btn sm pri',onclick:()=>replyBox(r,box)},r.reply?'Изменить ответ':'Ответить'));
- if(canDelete)acts.append(h('button',{class:'btn sm dng',onclick:async()=>{if(!confirm('Удалить отзыв навсегда?'))return;const{error}=await sb.from('admin_reviews').delete().eq('id',r.id);if(error)return toast(explain(error));st.rev=st.rev.filter(x=>x.id!==r.id);updBadges();renderReviews()}},'Удалить'));
+ if(canDelete)acts.append(h('button',{class:'btn sm dng',onclick:async()=>{if(!confirm('Удалить отзыв навсегда?'))return;const{data,error}=await sb.from('admin_reviews').delete().eq('id',r.id).select('id');if(error)return toast(explain(error));if(!data||data.length===0)return toast('Отзыв не удалён: Supabase не подтвердил удаление. Проверь права администратора.');st.rev=st.rev.filter(x=>x.id!==r.id);updBadges();renderReviews();toast('Отзыв удалён')}},'Удалить'));
  box.append(acts);return box}
 function replyBox(r,box){if(box.querySelector('.rform'))return;const ta=h('textarea',{class:'inp',maxlength:1500,placeholder:'Ответ на отзыв (виден всем на сайте)'});ta.value=r.reply||'';
  const f=h('div',{class:'rform',style:'margin-top:12px'},ta,h('div',{class:'acts'},h('button',{class:'btn sm pri',onclick:async()=>{const v=ta.value.trim();if(!v)return;const{data,error}=await sb.from('admin_reviews').update({reply:v}).eq('id',r.id).select().single();if(error)return toast(explain(error));Object.assign(r,data||{reply:v});renderReviews();toast('Ответ сохранён')}},'Отправить ответ'),h('button',{class:'btn sm',onclick:()=>f.remove()},'Отмена')));
